@@ -5,7 +5,7 @@
 {-# language NamedFieldPuns #-}
 
 module Network.Unexceptional.Bytes
-  ( sendAll
+  ( send
   ) where
 
 import System.Posix.Types (Fd(Fd))
@@ -22,11 +22,13 @@ import qualified Linux.Socket as X
 import qualified Data.Bytes.Types
 import qualified Network.Socket as S
 
-sendAll ::
+-- | Send the entire byte sequence. This call POSIX @send@ in a loop
+-- until all of the bytes have been sent.
+send ::
      Socket
   -> Bytes
   -> IO (Either Errno ())
-sendAll s Bytes{array,offset,length=len} = S.withFdSocket s $ \fd ->
+send s Bytes{array,offset,length=len} = S.withFdSocket s $ \fd ->
   -- We attempt the first send without testing if the socket is in
   -- ready for writes. This is because it is uncommon for the transmit
   -- buffer to already be full.
