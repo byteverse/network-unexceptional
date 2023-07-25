@@ -6,21 +6,25 @@
 
 module Network.Unexceptional.Bytes
   ( send
+  , receive
   ) where
 
 import System.Posix.Types (Fd(Fd))
 import Foreign.C.Error (Errno)
 import Foreign.C.Types (CInt)
 import Network.Socket (Socket)
-import Data.Bytes.Types (Bytes(Bytes))
+import Data.Bytes.Types (Bytes(Bytes),MutableBytes(MutableBytes))
 import Foreign.C.Error.Pattern (pattern EWOULDBLOCK,pattern EAGAIN)
 import Data.Array.Byte (ByteArray)
 import GHC.Conc (threadWaitRead, threadWaitWrite)
+import Control.Monad (when)
 
 import qualified Posix.Socket as X
 import qualified Linux.Socket as X
 import qualified Data.Bytes.Types
 import qualified Network.Socket as S
+import qualified Data.Primitive as PM
+import qualified Network.Unexceptional.MutableBytes as MB
 
 -- | Send the entire byte sequence. This call POSIX @send@ in a loop
 -- until all of the bytes have been sent.
@@ -49,3 +53,16 @@ sendLoop !fd !arr !off !len =
             EQ -> pure (Right ())
             LT -> sendLoop fd arr (off + sentSz) (len - sentSz)
             GT -> fail "Network.Unexceptional.Bytes.sendAll: send claimed to send too many bytes"
+
+receive :: 
+     Socket
+  -> Int -- ^ Maximum number of bytes to receive
+  -> IO (Either Errno Bytes)
+receive s n = do
+  dst <- PM.newByteArray n
+  MB.receive s (MutableBytes dst 0 n) >>= \case
+    Left e -> pure (Left e)
+    Right m -> do
+      when (m < n) (PM.shrinkMutableByteArray dst m)
+      dst' <- PM.unsafeFreezeByteArray dst 
+      pure (Right (Bytes dst' 0 m))
