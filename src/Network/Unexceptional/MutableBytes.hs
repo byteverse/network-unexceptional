@@ -8,6 +8,7 @@ module Network.Unexceptional.MutableBytes
   ( receive
   ) where
 
+import Control.Exception (throwIO)
 import Data.Bytes.Types (MutableBytes(MutableBytes))
 import Data.Primitive (MutableByteArray)
 import Foreign.C.Error (Errno)
@@ -17,6 +18,7 @@ import GHC.Exts (RealWorld)
 import Network.Socket (Socket)
 import System.Posix.Types (Fd(Fd))
 
+import qualified Network.Unexceptional.Types as Types
 import qualified Data.Bytes.Types
 import qualified Linux.Socket as X
 import qualified Network.Socket as S
@@ -29,11 +31,14 @@ receive ::
      Socket
   -> MutableBytes RealWorld -- ^ Slice of a buffer
   -> IO (Either Errno Int)
-receive s MutableBytes{array,offset,length=len} = S.withFdSocket s $ \fd ->
-  -- We attempt the first send without testing if the socket is in
-  -- ready for writes. This is because it is uncommon for the transmit
-  -- buffer to already be full.
-  receiveLoop (Fd fd) array offset len
+receive s MutableBytes{array,offset,length=len} =
+  if len > 0
+    then S.withFdSocket s $ \fd ->
+      -- We attempt the first send without testing if the socket is in
+      -- ready for writes. This is because it is uncommon for the transmit
+      -- buffer to already be full.
+      receiveLoop (Fd fd) array offset len
+    else throwIO Types.NonpositiveReceptionSize
 
 -- Does not wait for file descriptor to be ready. Only performs
 -- a single successful recv syscall
@@ -48,5 +53,5 @@ receiveLoop !fd !arr !off !len =
     Right recvSzC ->
       let recvSz = fromIntegral recvSzC :: Int
        in case compare recvSz len of
-            GT -> fail "Network.Unexceptional.Bytes.receive: recv claimed to receive too many bytes"
+            GT -> throwIO Types.ReceivedTooManyBytes
             _ -> pure (Right recvSz)

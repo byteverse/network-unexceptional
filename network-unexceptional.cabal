@@ -17,6 +17,7 @@ library
     Network.Unexceptional.ByteString
     Network.Unexceptional.Chunks
     Network.Unexceptional.MutableBytes
+    Network.Unexceptional.Types
   build-depends:
     , base >=4.17 && <5
     , posix-api >=0.6.0.1
