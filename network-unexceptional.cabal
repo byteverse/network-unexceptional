@@ -2,6 +2,11 @@ cabal-version: 3.0
 name: network-unexceptional
 version: 0.1.1.0
 synopsis: Network functions that do not throw exceptions
+description:
+  Functions compatible with the Socket type from the network library that
+  do not convert POSIX error codes to thrown exceptions. This library
+  can throw exceptions, but they only happen in the case of misuse, not
+  as the result of anything a network peer does.
 license: BSD-3-Clause
 license-file: LICENSE
 author: Andrew Martin
