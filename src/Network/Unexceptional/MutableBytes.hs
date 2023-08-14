@@ -34,9 +34,8 @@ receive ::
 receive s MutableBytes{array,offset,length=len} =
   if len > 0
     then S.withFdSocket s $ \fd ->
-      -- We attempt the first send without testing if the socket is in
-      -- ready for writes. This is because it is uncommon for the transmit
-      -- buffer to already be full.
+      -- We attempt the first receive without testing if the socket is
+      -- ready for reads.
       receiveLoop (Fd fd) array offset len
     else throwIO Types.NonpositiveReceptionSize
 
