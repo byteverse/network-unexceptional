@@ -25,7 +25,7 @@ library
     Network.Unexceptional.MutableBytes
     Network.Unexceptional.Types
   build-depends:
-    , base >=4.17 && <5
+    , base >=4.16.3 && <5
     , posix-api >=0.6.1
     , error-codes >=0.1.1
     , byteslice >=0.2.8
