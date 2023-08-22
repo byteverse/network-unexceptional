@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name: network-unexceptional
-version: 0.1.1.0
+version: 0.1.2.0
 synopsis: Network functions that do not throw exceptions
 description:
   Functions compatible with the Socket type from the network library that
@@ -19,8 +19,9 @@ library
   ghc-options: -O2 -Wall
   exposed-modules:
     Network.Unexceptional
-    Network.Unexceptional.Bytes
+    Network.Unexceptional.ByteArray
     Network.Unexceptional.ByteString
+    Network.Unexceptional.Bytes
     Network.Unexceptional.Chunks
     Network.Unexceptional.MutableBytes
     Network.Unexceptional.Types
