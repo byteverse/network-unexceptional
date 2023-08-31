@@ -10,7 +10,7 @@ module Network.Unexceptional.ByteArray
 
 import Control.Exception (throwIO)
 import Control.Monad (when)
-import Data.Array.Byte (ByteArray)
+import Data.Primitive (ByteArray)
 import Data.Bytes.Types (Bytes(Bytes),MutableBytes(MutableBytes))
 import Foreign.C.Error (Errno)
 import Foreign.C.Error.Pattern (pattern EWOULDBLOCK,pattern EAGAIN)

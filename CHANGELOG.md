@@ -1,5 +1,10 @@
 # Revision history for network-unexceptional
 
+## 0.1.3.1 -- 2023-08-31
+
+* Import `ByteArray` from `Data.Primitive` instead of `Data.Array.Byte`
+  to fix build failure on GHC 9.2.
+
 ## 0.1.3.0 -- 2023-08-30
 
 * Add interruptible send and receive functions to give users control over
