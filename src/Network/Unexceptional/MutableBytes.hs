@@ -7,6 +7,8 @@
 module Network.Unexceptional.MutableBytes
   ( receive
   , receiveInterruptible
+  , receiveExactly
+  , receiveExactlyInterruptible
   ) where
 
 import Control.Applicative ((<|>))
@@ -18,6 +20,7 @@ import Data.Functor (($>))
 import Data.Primitive (MutableByteArray)
 import Foreign.C.Error (Errno)
 import Foreign.C.Error.Pattern (pattern EWOULDBLOCK,pattern EAGAIN)
+import Foreign.C.Error.Pattern (pattern EEOI)
 import GHC.Conc (threadWaitRead,threadWaitReadSTM)
 import GHC.Exts (RealWorld)
 import Network.Socket (Socket)
@@ -70,9 +73,11 @@ receiveLoop !fd !arr !off !len =
       else pure (Left e)
     Right recvSzC ->
       let recvSz = fromIntegral recvSzC :: Int
-       in case compare recvSz len of
-            GT -> throwIO Types.ReceivedTooManyBytes
-            _ -> pure (Right recvSz)
+       in case recvSz of
+            0 -> pure (Left EEOI)
+            _ -> case compare recvSz len of
+              GT -> throwIO Types.ReceivedTooManyBytes
+              _ -> pure (Right recvSz)
 
 -- Does not wait for file descriptor to be ready. Only performs
 -- a single successful recv syscall
@@ -86,9 +91,11 @@ receiveInterruptibleLoop !interrupt !fd !arr !off !len =
       else pure (Left e)
     Right recvSzC ->
       let recvSz = fromIntegral recvSzC :: Int
-       in case compare recvSz len of
-            GT -> throwIO Types.ReceivedTooManyBytes
-            _ -> pure (Right recvSz)
+       in case recvSz of
+            0 -> pure (Left EEOI)
+            _ -> case compare recvSz len of
+              GT -> throwIO Types.ReceivedTooManyBytes
+              _ -> pure (Right recvSz)
 
 checkFinished :: TVar Bool -> STM ()
 checkFinished = STM.check <=< STM.readTVar
@@ -102,3 +109,36 @@ waitUntilReadable !interrupt !fd = do
   deregister
   pure outcome
 
+-- | Blocks until an exact number of bytes has been received.
+receiveExactly ::
+     Socket
+  -> MutableBytes RealWorld
+     -- ^ Length is the exact number of bytes to receive,
+     -- must be greater than zero.
+  -> IO (Either Errno ())
+receiveExactly s (MutableBytes dst off0 n) = if n > 0
+  then do
+    let loop !ix !remaining = case remaining of
+          0 -> pure (Right ())
+          _ -> receive s (MutableBytes dst ix remaining) >>= \case
+            Left e -> pure (Left e)
+            Right k -> loop (ix + k) (remaining - k)
+    loop off0 n
+  else throwIO Types.NonpositiveReceptionSize
+
+receiveExactlyInterruptible ::
+     TVar Bool
+  -> Socket
+  -> MutableBytes RealWorld
+     -- ^ Length is the exact number of bytes to receive,
+     -- must be greater than zero.
+  -> IO (Either Errno ())
+receiveExactlyInterruptible !intr !s (MutableBytes dst off0 n) = if n > 0
+  then do
+    let loop !ix !remaining = case remaining of
+          0 -> pure (Right ())
+          _ -> receiveInterruptible intr s (MutableBytes dst ix remaining) >>= \case
+            Left e -> pure (Left e)
+            Right k -> loop (ix + k) (remaining - k)
+    loop off0 n
+  else throwIO Types.NonpositiveReceptionSize

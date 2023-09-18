@@ -1,5 +1,13 @@
 # Revision history for network-unexceptional
 
+## 0.2.0.0 -- 2023-09-18
+
+* Receive functions now fail with `EEOI` when the peer shuts down.
+  This is a considerable deviation from POSIX, which returns a
+  length of zero when the peer shuts down. It is much easier to write
+  code using "receive" functions when a shutdown is treated as an
+  exception in this way.
+
 ## 0.1.3.1 -- 2023-08-31
 
 * Import `ByteArray` from `Data.Primitive` instead of `Data.Array.Byte`

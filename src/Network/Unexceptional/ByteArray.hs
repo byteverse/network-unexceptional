@@ -27,22 +27,14 @@ import qualified Data.Primitive as PM
 import qualified Network.Unexceptional.MutableBytes as MB
 
 -- | Blocks until an exact number of bytes has been received.
-receiveExactly :: 
+receiveExactly ::
      Socket
   -> Int -- ^ Exact number of bytes to receive, must be greater than zero
   -> IO (Either Errno ByteArray)
-receiveExactly s n = if n > 0
-  then do
-    dst <- PM.newByteArray n
-    let loop !ix !remaining = case remaining of
-          0 -> do
-            dst' <- PM.unsafeFreezeByteArray dst 
-            pure (Right dst')
-          _ -> MB.receive s (MutableBytes dst ix remaining) >>= \case
-            Left e -> pure (Left e)
-            Right k -> loop (ix + k) (remaining - k)
-    loop 0 n
-  else throwIO Types.NonpositiveReceptionSize
-
-
-
+receiveExactly !s !n = do
+  dst <- PM.newByteArray n
+  MB.receiveExactly s (MutableBytes dst 0 n) >>= \case
+    Left e -> pure (Left e)
+    Right _ -> do
+      dst' <- PM.unsafeFreezeByteArray dst
+      pure (Right dst')
