@@ -1,5 +1,9 @@
 # Revision history for network-unexceptional
 
+## 0.2.1.0 -- 2024-01-17
+
+* Add `receiveFromInterruptible"
+
 ## 0.2.0.0 -- 2023-09-18
 
 * Receive functions now fail with `EEOI` when the peer shuts down.
