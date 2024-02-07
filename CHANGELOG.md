@@ -1,5 +1,9 @@
 # Revision history for network-unexceptional
 
+## 0.2.1.1 -- 2024-02-07
+
+* Update package metadata.
+
 ## 0.2.1.0 -- 2024-01-17
 
 * Add `receiveFromInterruptible"
