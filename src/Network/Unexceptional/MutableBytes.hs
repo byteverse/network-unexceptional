@@ -174,7 +174,7 @@ data Outcome = Ready | Interrupted
 waitUntilReadable :: TVar Bool -> Fd -> IO Outcome
 waitUntilReadable !interrupt !fd = do
   (isReadyAction, deregister) <- threadWaitReadSTM fd
-  outcome <- STM.atomically $ (isReadyAction $> Ready) <|> (checkFinished interrupt $> Interrupted)
+  outcome <- STM.atomically $ (checkFinished interrupt $> Interrupted) <|> (isReadyAction $> Ready)
   deregister
   pure outcome
 

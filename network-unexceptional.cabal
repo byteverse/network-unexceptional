@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            network-unexceptional
-version:         0.2.1.1
+version:         0.2.1.2
 category:        Network
 synopsis:        Network functions that do not throw exceptions
 description:

@@ -1,5 +1,10 @@
 # Revision history for network-unexceptional
 
+## 0.2.1.2 -- 2025-02-10
+
+* Check for timeout before checking for fd ready. This might help prevent
+  certain tcp interactions from running too long.
+
 ## 0.2.1.1 -- 2024-02-07
 
 * Update package metadata.
